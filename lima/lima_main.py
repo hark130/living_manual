@@ -16,16 +16,26 @@ from lima.lima_args import ARG_DICT_KEY_FILE, ARG_DICT_KEY_WORDS, parse_lima_arg
 from lima.lima_search import get_dirty_words, search_file
 
 
+# pylint: disable=broad-except
 def execute() -> None:
+    """Entry point for the LIMA package.
+
+    Raises:
+        None.  Prints all Exceptions to stderr and exits with exit code 2.
+    """
     try:
         sys.exit(main())
     except Exception as err:
-        print(f'ERROR: {str(err)}')
+        print(f'ERROR: {str(err)}', file=sys.stderr)
         sys.exit(2)  # Failure
-    # sys.exit(main())
 
 
 def main() -> int:
+    """Entry point for the LIMA module.
+
+    Returns:
+        # 0 on success, 1 for bad input, 2 on exception, 3 if dirty words found
+    """
     # LOCAL VARIABLES
     exit_code = 0     # 0 on success, 1 for bad input, 2 on exception, 3 if dirty words found
     arg_dict = {}     # Dictionary of command line arguments

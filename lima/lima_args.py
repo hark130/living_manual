@@ -24,7 +24,7 @@ class LimaParser(argparse.ArgumentParser):
         Exits with value 1 on argument parsing failures.
         """
         self.print_help(sys.stderr)
-        self.exit(1, '%s: ERROR: %s\n' % (self.prog, message))
+        self.exit(1, f'{self.prog}: ERROR: {message}\n')
 
 
 def parse_lima_args() -> Dict[str, Path]:
@@ -61,15 +61,14 @@ def parse_lima_args() -> Dict[str, Path]:
     # file
     try:
         file_path = _validate_path_arg(file_arg=parsed_args.file, arg_name='--file')
-    except AttributeError as err:
-        arg_dict[ARG_DICT_KEY_FILE] = None  # Likely indicates a "partial refactor" BUG
-    else:
+    except AttributeError:
+        pass  # Likely indicates a "partial refactor" BUG
+    finally:
         arg_dict[ARG_DICT_KEY_FILE] = file_path
     # word
     try:
         words = _validate_path_arg(file_arg=parsed_args.words, arg_name='--words')
-    except AttributeError as err:
-        print(str(err))
+    except AttributeError:
         pass  # Likely indicates a "partial refactor" BUG
     finally:
         arg_dict[ARG_DICT_KEY_WORDS] = words

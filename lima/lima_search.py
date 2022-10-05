@@ -78,12 +78,12 @@ def search_file(file_path: Path, dw_list: List[str], case_sensitive: bool = True
         local_list = [dw_entry.lower() for dw_entry in dw_list]
 
     # SEARCH IT
-    for line_num in range(0, len(file_contents)):
+    for line_num, file_entry in enumerate(file_contents):
         for dw_entry in local_list:
-            if dw_entry in file_contents[line_num]:
+            if dw_entry in file_entry:
                 found = 3
                 print(f'{file_path.absolute()} : line {line_num + 1} : "{dw_entry}" '
-                      f'found in "{file_contents[line_num]}"', file=sys.stderr)
+                      f'found in "{file_entry}"', file=sys.stderr)
 
     # DONE
     return found
