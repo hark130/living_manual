@@ -37,7 +37,8 @@ def get_dirty_words(dw_path: Path) -> List[str]:
     return dw_list
 
 
-def search_dir(dir_path: Path, dw_list: List[str], case_sensitive: bool = True) -> int:
+def search_dir(dir_path: Path, dw_list: List[str], case_sensitive: bool = True,
+               recursive: bool = False) -> int:
     """Searches dir_path for files that contain dw_list entries.
 
     Prints findings to stderr.
@@ -46,6 +47,7 @@ def search_dir(dir_path: Path, dw_list: List[str], case_sensitive: bool = True) 
         dir_path: Path object to a directory to search.
         dw_list: A list of non-empty strings to search file_path for.
         case_sensitive: Optional; Considers case when checking file_path contents for dirty words.
+        recursive: Optional; If True, recursive search all the child directories found in dir_path.
 
     Returns:
         0 if no dirty words were found, 3 if dirty words were found.
@@ -57,20 +59,31 @@ def search_dir(dir_path: Path, dw_list: List[str], case_sensitive: bool = True) 
         ValueError: Bad value (e.g., empty string).
     """
     # LOCAL VARIABLES
-    target_files = []  # List of files found within dir_path to search for dirty words
-    temp_found = 0     # Temporary return value storage
-    found = 0          # 0 if no dirty words were found, 3 if dirty words were found
+    target_files = []    # List of files found within dir_path to search for dirty words
+    child_dir_list = []  # List of children directories to dir_path
+    temp_found = 0       # Temporary return value storage
+    found = 0            # 0 if no dirty words were found, 3 if dirty words were found
 
     # INPUT VALIDATION
     validate_path_dir(dir_path)
+    validate_type(recursive, 'recursive', bool)
 
     # SEARCH IT
+    # dir_path
     target_files = [t_file for t_file in dir_path.iterdir() if t_file.is_file()]
     for target_file in target_files:
         temp_found = search_file(file_path=target_file, dw_list=dw_list,
                                  case_sensitive=case_sensitive)
         if temp_found != 0:
             found = temp_found
+    # Recurse?
+    if recursive:
+        child_dir_list = [child_dir for child_dir in dir_path.iterdir() if child_dir.is_dir()]
+        for child_dir in child_dir_list:
+            temp_found = search_dir(dir_path=child_dir, dw_list=dw_list,
+                                    case_sensitive=case_sensitive, recursive=recursive)
+            if temp_found != 0:
+                found = temp_found
 
     # DONE
     return found
@@ -110,20 +123,23 @@ def search_file(file_path: Path, dw_list: List[str], case_sensitive: bool = True
     validate_type(case_sensitive, 'case_sensitive', bool)
 
     # READ IT
-    file_contents = file_path.read_text().split('\n')
+    try:
+        file_contents = file_path.read_text().split('\n')
+    except UnicodeDecodeError as err:
+        print(f'UnicodeDecodeError: {str(err)} in {file_path.absolute()}', file=sys.stderr)
+    else:
+        # PREPARE IT
+        if not case_sensitive:
+            file_contents = [file_entry.lower() for file_entry in file_contents]
+            local_list = [dw_entry.lower() for dw_entry in dw_list]
 
-    # PREPARE IT
-    if not case_sensitive:
-        file_contents = [file_entry.lower() for file_entry in file_contents]
-        local_list = [dw_entry.lower() for dw_entry in dw_list]
-
-    # SEARCH IT
-    for line_num, file_entry in enumerate(file_contents):
-        for dw_entry in local_list:
-            if dw_entry in file_entry:
-                found = 3
-                print(f'{file_path.absolute()} : line {line_num + 1} : "{dw_entry}" '
-                      f'found in "{file_entry}"', file=sys.stderr)
+        # SEARCH IT
+        for line_num, file_entry in enumerate(file_contents):
+            for dw_entry in local_list:
+                if dw_entry in file_entry:
+                    found = 3
+                    print(f'{file_path.absolute()} : line {line_num + 1} : "{dw_entry}" '
+                          f'found in "{file_entry}"', file=sys.stderr)
 
     # DONE
     return found

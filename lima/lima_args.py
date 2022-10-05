@@ -11,9 +11,10 @@ from lima.lima_validation import validate_path_dir, validate_path_file, validate
 
 
 # ARGUMENT DICTIONARY KEYS
-ARG_DICT_KEY_FILE = 'file'    # -f, --file
-ARG_DICT_KEY_DIR = 'dir'      # -d, --dir
-ARG_DICT_KEY_WORDS = 'words'  # -w, --words
+ARG_DICT_KEY_FILE = 'file'      # -f, --file
+ARG_DICT_KEY_DIR = 'dir'        # -d, --dir
+ARG_DICT_KEY_WORDS = 'words'    # -w, --words
+ARG_DICT_KEY_RECUR = 'recurse'  # -r, --recursive
 
 
 class LimaParser(argparse.ArgumentParser):
@@ -68,6 +69,8 @@ def parse_lima_args() -> Dict[str, Path]:
                             help='Search for dirty words in all files found in this directory')
     dir_parser.add_argument('-w', '--words', action='store', required=True,
                             help='Dirty word list')
+    dir_parser.add_argument('-r', '--recursive', action='store_true', required=False,
+                            help='Dirty word list', default=False)
 
     # Parse
     parsed_args = parser.parse_args()
@@ -97,6 +100,11 @@ def parse_lima_args() -> Dict[str, Path]:
         pass  # Likely indicates a "partial refactor" BUG
     finally:
         arg_dict[ARG_DICT_KEY_WORDS] = words_path
+    # recursive
+    try:
+        arg_dict[ARG_DICT_KEY_RECUR] = parsed_args.recursive
+    except AttributeError:
+        arg_dict[ARG_DICT_KEY_RECUR] = False  # Likely indicates a "partial refactor" BUG
 
     # DONE
     return arg_dict

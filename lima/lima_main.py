@@ -12,7 +12,8 @@
 import sys
 # Third Party Imports
 # Local Imports
-from lima.lima_args import ARG_DICT_KEY_DIR, ARG_DICT_KEY_FILE, ARG_DICT_KEY_WORDS, parse_lima_args
+from lima.lima_args import (ARG_DICT_KEY_DIR, ARG_DICT_KEY_FILE, ARG_DICT_KEY_RECUR,
+                            ARG_DICT_KEY_WORDS, parse_lima_args)
 from lima.lima_search import get_dirty_words, search_dir, search_file
 
 
@@ -57,7 +58,8 @@ def main() -> int:
                 exit_code = temp_code
         # Use Case 2
         if arg_dict[ARG_DICT_KEY_DIR]:
-            temp_code = search_dir(arg_dict[ARG_DICT_KEY_DIR], dirty_words)
+            temp_code = search_dir(arg_dict[ARG_DICT_KEY_DIR], dirty_words,
+                                   recursive=arg_dict[ARG_DICT_KEY_RECUR])
             if temp_code != 0:
                 exit_code = temp_code
 
