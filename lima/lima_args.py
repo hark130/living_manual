@@ -56,19 +56,15 @@ def parse_lima_args() -> Dict[str, Path]:
                         help='Dirty word list')
     # Parse
     parsed_args = parser.parse_args()
-    print(parsed_args)
-    print(parsed_args.file)
 
     # Validate
     # file
     try:
         file_path = _validate_path_arg(file_arg=parsed_args.file, arg_name='--file')
     except AttributeError as err:
-        print(str(err))  # DEBUGGING
         arg_dict[ARG_DICT_KEY_FILE] = None  # Likely indicates a "partial refactor" BUG
     else:
         arg_dict[ARG_DICT_KEY_FILE] = file_path
-    print(f'POST-FILE ARG DICT: {arg_dict}')  # DEBUGGING
     # word
     try:
         words = _validate_path_arg(file_arg=parsed_args.words, arg_name='--words')
@@ -79,7 +75,6 @@ def parse_lima_args() -> Dict[str, Path]:
         arg_dict[ARG_DICT_KEY_WORDS] = words
 
     # DONE
-    print(f'ARG DICT: {arg_dict}')  # DEBUGGING
     return arg_dict
 
 
