@@ -1,3 +1,10 @@
+"""LIVING MANUAL (LIMA) package entry point.
+
+    Typical usage example:
+
+    python -m lima --help
+"""
+
 # Standard Imports
 import sys
 # Third Party Imports
