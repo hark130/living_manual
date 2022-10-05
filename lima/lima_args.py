@@ -7,11 +7,12 @@ import argparse
 import sys
 # Third Party Imports
 # Local Imports
-from lima.lima_validation import validate_path_file, validate_string
+from lima.lima_validation import validate_path_dir, validate_path_file, validate_string
 
 
 # ARGUMENT DICTIONARY KEYS
 ARG_DICT_KEY_FILE = 'file'    # -f, --file
+ARG_DICT_KEY_DIR = 'dir'      # -d, --dir
 ARG_DICT_KEY_WORDS = 'words'  # -w, --words
 
 
@@ -42,50 +43,74 @@ def parse_lima_args() -> Dict[str, Path]:
     """
     # LOCAL VARIABLES
     parsed_args = None  # Parsed args as an argparse.Namespace object
-    file_path = None    # Path object of the target file
-    words = None        # Path object to the dirty word list
+    file_path = None    # Path object of the file (Use Case 1)
+    dir_path = None     # Path object of the directory (Use Case 2)
+    words_path = None   # Path object to the dirty word list
     arg_dict = {}       # Return value containing arg values
     # Object for parsing command line input into Python objects
     parser = LimaParser(prog='LIVING MANUAL (LIMA)')
+    subs = None         # Subparsers
+    file_parser = None  # Use Case 1 (file) subparser
+    dir_parser = None   # Use Case 2 (directory) subparser
 
     # ARGUMENTS
     # Add
-    parser.add_argument('-f', '--file', action='store', required=True,
-                        help='Target file to search for dirty words')
-    parser.add_argument('-w', '--words', action='store', required=True,
-                        help='Dirty word list')
+    subs = parser.add_subparsers(required=True)
+    # Use Case 1: File
+    file_parser = subs.add_parser('file', help='Search a file for dirty words')
+    file_parser.add_argument('-f', '--file', action='store', required=True,
+                             help='Target file to search for dirty words')
+    file_parser.add_argument('-w', '--words', action='store', required=True,
+                             help='Dirty word list')
+    # Use Case 2: Directory
+    dir_parser = subs.add_parser('dir', help='Search a directory for files with dirty words')
+    dir_parser.add_argument('-d', '--dir', action='store', required=True,
+                            help='Search for dirty words in all files found in this directory')
+    dir_parser.add_argument('-w', '--words', action='store', required=True,
+                            help='Dirty word list')
+
     # Parse
     parsed_args = parser.parse_args()
 
     # Validate
     # file
     try:
-        file_path = _validate_path_arg(file_arg=parsed_args.file, arg_name='--file')
+        file_path = _validate_path_arg(path_arg=parsed_args.file, arg_name='--file')
+        validate_path_file(file_path)
     except AttributeError:
         pass  # Likely indicates a "partial refactor" BUG
     finally:
         arg_dict[ARG_DICT_KEY_FILE] = file_path
-    # word
+    # dir
     try:
-        words = _validate_path_arg(file_arg=parsed_args.words, arg_name='--words')
+        dir_path = _validate_path_arg(path_arg=parsed_args.dir, arg_name='--dir')
+        validate_path_dir(dir_path)
     except AttributeError:
         pass  # Likely indicates a "partial refactor" BUG
     finally:
-        arg_dict[ARG_DICT_KEY_WORDS] = words
+        arg_dict[ARG_DICT_KEY_DIR] = dir_path
+    # word
+    try:
+        words_path = _validate_path_arg(path_arg=parsed_args.words, arg_name='--words')
+        validate_path_file(words_path)
+    except AttributeError:
+        pass  # Likely indicates a "partial refactor" BUG
+    finally:
+        arg_dict[ARG_DICT_KEY_WORDS] = words_path
 
     # DONE
     return arg_dict
 
 
-def _validate_path_arg(file_arg: str, arg_name: str) -> Path:
+def _validate_path_arg(path_arg: str, arg_name: str) -> Path:
     """Validate file arguments and construct Path objects.
 
     Args:
-        file_arg: Absolute or relative filename.
+        path_arg: Absolute or relative filename.
         arg_name: Name of the argument to include in Exception messages.
 
     Returns:
-        Path object for file_arg.
+        Path object for path_arg.
 
     Raises:
         FileNotFoundError: arg_name value not found
@@ -93,8 +118,7 @@ def _validate_path_arg(file_arg: str, arg_name: str) -> Path:
         TypeError: Bad datatype
         ValueError: Blank(?) arg_name value
     """
-    validate_string(file_arg, 'file_arg')
+    validate_string(path_arg, 'path_arg')
     validate_string(arg_name, 'arg_name')
-    file_path = Path(file_arg)
-    validate_path_file(file_path)
+    file_path = Path(path_arg)
     return file_path

@@ -6,7 +6,8 @@ from typing import List
 import sys
 # Third Party Imports
 # Local Imports
-from lima.lima_validation import validate_path_file, validate_string, validate_type
+from lima.lima_validation import (validate_path_dir, validate_path_file,
+                                  validate_string, validate_type)
 
 
 def get_dirty_words(dw_path: Path) -> List[str]:
@@ -34,6 +35,45 @@ def get_dirty_words(dw_path: Path) -> List[str]:
 
     # DONE
     return dw_list
+
+
+def search_dir(dir_path: Path, dw_list: List[str], case_sensitive: bool = True) -> int:
+    """Searches dir_path for files that contain dw_list entries.
+
+    Prints findings to stderr.
+
+    Args:
+        dir_path: Path object to a directory to search.
+        dw_list: A list of non-empty strings to search file_path for.
+        case_sensitive: Optional; Considers case when checking file_path contents for dirty words.
+
+    Returns:
+        0 if no dirty words were found, 3 if dirty words were found.
+
+    Raises:
+        FileNotFoundError: dir_path is unavailable.
+        OSError: dir_path is not a directory.
+        TypeError: Bad data type.
+        ValueError: Bad value (e.g., empty string).
+    """
+    # LOCAL VARIABLES
+    target_files = []  # List of files found within dir_path to search for dirty words
+    temp_found = 0     # Temporary return value storage
+    found = 0          # 0 if no dirty words were found, 3 if dirty words were found
+
+    # INPUT VALIDATION
+    validate_path_dir(dir_path)
+
+    # SEARCH IT
+    target_files = [t_file for t_file in dir_path.iterdir() if t_file.is_file()]
+    for target_file in target_files:
+        temp_found = search_file(file_path=target_file, dw_list=dw_list,
+                                 case_sensitive=case_sensitive)
+        if temp_found != 0:
+            found = temp_found
+
+    # DONE
+    return found
 
 
 def search_file(file_path: Path, dw_list: List[str], case_sensitive: bool = True) -> int:

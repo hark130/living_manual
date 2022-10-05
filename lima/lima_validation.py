@@ -7,6 +7,23 @@ from typing import Any
 # Local Imports
 
 
+def validate_path_dir(path_dir: Path) -> None:
+    """Validate a Path object as a directoryh.
+
+    Args:
+        path_dir: Path object to validate as a directory.
+
+    Raises:
+        TypeError: Bad data type.
+        FileNotFoundError: path_dir is unavailable.
+        OSError: path_dir is not a directory.
+    """
+    # INPUT VALIDATION
+    _validate_path_obj(path_dir, 'path_dir')
+    if not path_dir.is_dir():
+        raise OSError(f'{path_dir.absolute()} is not a directory')
+
+
 def validate_path_file(path_file: Path) -> None:
     """Validate a Path object as a file.
 
@@ -19,13 +36,7 @@ def validate_path_file(path_file: Path) -> None:
         OSError: path_file is not a file.
     """
     # INPUT VALIDATION
-    if path_file is None:
-        raise TypeError('Path has not been defined')
-    validate_type(path_file, 'path_file', Path)
-
-    # VALIDATE IT
-    if not path_file.exists():
-        raise FileNotFoundError(f'Unable to locate {path_file.absolute()}')
+    _validate_path_obj(path_file, 'path_file')
     if not path_file.is_file():
         raise OSError(f'{path_file.absolute()} is not a file')
 
@@ -68,3 +79,24 @@ def validate_type(var: Any, var_name: str, var_type: type) -> None:
     """
     if not isinstance(var, var_type):
         raise TypeError(f'{var_name} expected type {var_type}, instead received type {type(var)}')
+
+
+def _validate_path_obj(path_obj: Path, arg_name: str) -> None:
+    """Validate a Path object.
+
+    Args:
+        path_obj: Path object to validate.
+
+    Raises:
+        TypeError: Bad data type.
+        FileNotFoundError: path_obj is unavailable.
+    """
+    # INPUT VALIDATION
+    validate_string(arg_name, 'arg_name')
+    if path_obj is None:
+        raise TypeError(f'Path {arg_name} has not been defined')
+    validate_type(path_obj, arg_name, Path)
+
+    # VALIDATE IT
+    if not path_obj.exists():
+        raise FileNotFoundError(f'Unable to locate {path_obj.absolute()}')
