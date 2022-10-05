@@ -13,6 +13,7 @@ import sys
 # Third Party Imports
 # Local Imports
 from lima.lima_args import ARG_DICT_KEY_FILE, ARG_DICT_KEY_WORDS, parse_lima_args
+from lima.lima_search import get_dirty_words, search_file
 
 
 def execute() -> None:
@@ -26,8 +27,9 @@ def execute() -> None:
 
 def main() -> int:
     # LOCAL VARIABLES
-    exit_code = 0  # 0 on success, 1 for bad input, 2 on exception
-    arg_dict = {}  # Dictionary of command line arguments
+    exit_code = 0     # 0 on success, 1 for bad input, 2 on exception, 3 if dirty words found
+    arg_dict = {}     # Dictionary of command line arguments
+    dirty_words = []  # List of dirty words parsed from the command line
 
     # PARSE ARGS
     try:
@@ -36,9 +38,8 @@ def main() -> int:
         print(f'ERROR: {str(err)}')
         exit_code = 1
     else:
-        print(f'ARG DICT: {arg_dict}')  # DEBUGGING
-        print(f'{ARG_DICT_KEY_FILE} is {arg_dict[ARG_DICT_KEY_FILE]}')  # DEBUGGING
-        print(f'{ARG_DICT_KEY_WORDS} is {arg_dict[ARG_DICT_KEY_WORDS]}')  # DEBUGGING
+        dirty_words = get_dirty_words(arg_dict[ARG_DICT_KEY_WORDS])
+        exit_code = search_file(arg_dict[ARG_DICT_KEY_FILE], dirty_words)
 
     # DONE
     return exit_code
