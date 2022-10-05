@@ -61,13 +61,13 @@ def parse_lima_args() -> Dict[str, Path]:
     file_parser.add_argument('-f', '--file', action='store', required=True,
                              help='Target file to search for dirty words')
     file_parser.add_argument('-w', '--words', action='store', required=True,
-                        help='Dirty word list')
+                             help='Dirty word list')
     # Use Case 2: Directory
     dir_parser = subs.add_parser('dir', help='Search a directory for files with dirty words')
     dir_parser.add_argument('-d', '--dir', action='store', required=True,
                             help='Search for dirty words in all files found in this directory')
     dir_parser.add_argument('-w', '--words', action='store', required=True,
-                        help='Dirty word list')
+                            help='Dirty word list')
 
     # Parse
     parsed_args = parser.parse_args()

@@ -80,6 +80,7 @@ def validate_type(var: Any, var_name: str, var_type: type) -> None:
     if not isinstance(var, var_type):
         raise TypeError(f'{var_name} expected type {var_type}, instead received type {type(var)}')
 
+
 def _validate_path_obj(path_obj: Path, arg_name: str) -> None:
     """Validate a Path object.
 
