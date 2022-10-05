@@ -112,6 +112,7 @@ def search_file(file_path: Path, dw_list: List[str], case_sensitive: bool = True
     found = 0             # 0 if no dirty words were found, 3 if dirty words were found
     file_contents = ''    # Contents of file_path
     local_list = dw_list  # Local copy of dw_list contents
+    try_harder = False    # Tracks UnicodeDecodeError Exceptions from _search_file_text()
 
     # INPUT VALIDATION
     validate_path_file(file_path)
@@ -124,15 +125,75 @@ def search_file(file_path: Path, dw_list: List[str], case_sensitive: bool = True
 
     # READ IT
     try:
+        found = _search_file_text(file_path=file_path, dw_list=local_list,
+                                  case_sensitive=case_sensitive)
+    except (RuntimeError, UnicodeDecodeError) as err:
+        try_harder = True
+    if try_harder:
+        found = _search_file_bytes(file_path=file_path, dw_list=local_list)
+
+    # DONE
+    return found
+
+
+def _search_file_bytes(file_path: Path, dw_list: List[str]) -> int:
+    """Read a file's bytes and search for dw_list entries.
+
+    Prints findings to stderr.  Does not validate input.
+
+    Returns:
+        0 if no dirty words were found, 3 if dirty words were found.
+    """
+    # LOCAL VARIABLES
+    found = 0           # 0 if no dirty words were found, 3 if dirty words were found
+    file_contents = ''  # Byte content of file_path
+    local_list = []     # Local copy of dw_list contents converted to byte objects
+
+    # PREPARE IT
+    local_list = [bytes(dw_entry, encoding='UTF-8') for dw_entry in dw_list]
+
+    # READ IT
+    file_contents = file_path.read_bytes()
+
+    # SEARCH IT
+    for dw_entry in local_list:
+        if dw_entry in file_contents:
+            found = 3
+            print(f'{file_path.absolute()} : {str(dw_entry)[1:]} found in binary file',
+                  file=sys.stderr)
+
+    # DONE
+    return found
+
+
+def _search_file_text(file_path: Path, dw_list: List[str], case_sensitive: bool) -> int:
+    """Search a UTF-8 encoded file for dw_list entries.
+
+    Prints findings to stderr.  Call _search_file_bytes() if this function raises a
+    UnicodeDecodeError.  Does not validate input.
+
+    Returns:
+        0 if no dirty words were found, 3 if dirty words were found.
+
+    Raises:
+        RuntimeError: UnicodeDecodeError exception wrapped up nice and neat.
+        UnicodeDecodeError: Likely, 'utf-8' codec can't decode byte.
+    """
+    # LOCAL VARIABLES
+    found = 0             # 0 if no dirty words were found, 3 if dirty words were found
+    file_contents = ''    # Contents of file_path
+    local_list = dw_list  # Local copy of dw_list contents
+
+    # READ IT
+    try:
         file_contents = file_path.read_text().split('\n')
     except UnicodeDecodeError as err:
-        print(f'UnicodeDecodeError: {str(err)} in {file_path.absolute()}', file=sys.stderr)
+        raise RuntimeError(f'UnicodeDecodeError: {str(err)} in {file_path.absolute()}') from err
     else:
         # PREPARE IT
         if not case_sensitive:
-            file_contents = [file_entry.lower() for file_entry in file_contents]
             local_list = [dw_entry.lower() for dw_entry in dw_list]
-
+            file_contents = [file_entry.lower() for file_entry in file_contents]
         # SEARCH IT
         for line_num, file_entry in enumerate(file_contents):
             for dw_entry in local_list:
