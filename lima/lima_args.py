@@ -91,12 +91,12 @@ def parse_lima_args() -> Dict[str, Path]:
         arg_dict[ARG_DICT_KEY_DIR] = dir_path
     # word
     try:
-        words = _validate_path_arg(path_arg=parsed_args.words, arg_name='--words')
-        validate_path_file(words)
+        words_path = _validate_path_arg(path_arg=parsed_args.words, arg_name='--words')
+        validate_path_file(words_path)
     except AttributeError:
         pass  # Likely indicates a "partial refactor" BUG
     finally:
-        arg_dict[ARG_DICT_KEY_WORDS] = words
+        arg_dict[ARG_DICT_KEY_WORDS] = words_path
 
     # DONE
     return arg_dict

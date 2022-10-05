@@ -38,7 +38,7 @@ def main() -> int:
     """
     # LOCAL VARIABLES
     exit_code = 0     # 0 on success, 1 for bad input, 2 on exception, 3 if dirty words found
-    temp_exit = 0     # Temporary exit code for successive function calls
+    temp_code = 0     # Temporary exit code for successive function calls
     arg_dict = {}     # Dictionary of command line arguments
     dirty_words = []  # List of dirty words parsed from the command line
 
