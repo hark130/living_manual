@@ -12,8 +12,8 @@
 import sys
 # Third Party Imports
 # Local Imports
-from lima.lima_args import ARG_DICT_KEY_FILE, ARG_DICT_KEY_WORDS, parse_lima_args
-from lima.lima_search import get_dirty_words, search_file
+from lima.lima_args import ARG_DICT_KEY_DIR, ARG_DICT_KEY_FILE, ARG_DICT_KEY_WORDS, parse_lima_args
+from lima.lima_search import get_dirty_words, search_dir, search_file
 
 
 # pylint: disable=broad-except
@@ -38,6 +38,7 @@ def main() -> int:
     """
     # LOCAL VARIABLES
     exit_code = 0     # 0 on success, 1 for bad input, 2 on exception, 3 if dirty words found
+    temp_exit = 0     # Temporary exit code for successive function calls
     arg_dict = {}     # Dictionary of command line arguments
     dirty_words = []  # List of dirty words parsed from the command line
 
@@ -49,7 +50,16 @@ def main() -> int:
         exit_code = 1
     else:
         dirty_words = get_dirty_words(arg_dict[ARG_DICT_KEY_WORDS])
-        exit_code = search_file(arg_dict[ARG_DICT_KEY_FILE], dirty_words)
+        # Use Case 1
+        if arg_dict[ARG_DICT_KEY_FILE]:
+            temp_code = search_file(arg_dict[ARG_DICT_KEY_FILE], dirty_words)
+            if temp_code != 0:
+                exit_code = temp_code
+        # Use Case 2
+        if arg_dict[ARG_DICT_KEY_DIR]:
+            temp_code = search_dir(arg_dict[ARG_DICT_KEY_DIR], dirty_words)
+            if temp_code != 0:
+                exit_code = temp_code
 
     # DONE
     return exit_code
