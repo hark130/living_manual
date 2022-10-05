@@ -110,7 +110,6 @@ def search_file(file_path: Path, dw_list: List[str], case_sensitive: bool = True
     """
     # LOCAL VARIABLES
     found = 0             # 0 if no dirty words were found, 3 if dirty words were found
-    file_contents = ''    # Contents of file_path
     local_list = dw_list  # Local copy of dw_list contents
     try_harder = False    # Tracks UnicodeDecodeError Exceptions from _search_file_text()
 
@@ -127,7 +126,7 @@ def search_file(file_path: Path, dw_list: List[str], case_sensitive: bool = True
     try:
         found = _search_file_text(file_path=file_path, dw_list=local_list,
                                   case_sensitive=case_sensitive)
-    except (RuntimeError, UnicodeDecodeError) as err:
+    except (RuntimeError, UnicodeDecodeError):
         try_harder = True
     if try_harder:
         found = _search_file_bytes(file_path=file_path, dw_list=local_list)
