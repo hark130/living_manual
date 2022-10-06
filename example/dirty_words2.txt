@@ -1,0 +1,7 @@
+Users
+shouldn't
+discover
+this collection
+inside
+target.txt
+
