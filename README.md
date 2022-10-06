@@ -24,5 +24,7 @@ LIMA will search for dirty words.  The expected format of the dirty word file is
 ### Examples
 
 See:
-    * `example/LIMA Use Case 1.png`
-    * `example/LIMA Use Case 2.png`
+
+[example/LIMA Use Case 1.png](https://github.com/hark130/living_manual/blob/main/example/LIMA%20Use%20Case%201.png)
+
+[example/LIMA Use Case 1.png](https://github.com/hark130/living_manual/blob/main/example/LIMA%20Use%20Case%202.png)
