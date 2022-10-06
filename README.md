@@ -8,10 +8,21 @@ LIMA will search for dirty words.  The expected format of the dirty word file is
 
 ## Usage
 
+### Installation
+
+`pip install lima-1.0.0-py3-none-any.whl`
+
 ### Use Case 1 (file)
 
-`python -m lima file --help`
+`lima file --help`
 
 ### Use Case 2 (directory)
 
-`python -m lima dir --help`
+`lima dir --help`
+
+
+### Examples
+
+See:
+    * `example/LIMA Use Case 1.png`
+    * `example/LIMA Use Case 2.png`
