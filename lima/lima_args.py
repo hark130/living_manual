@@ -70,7 +70,7 @@ def parse_lima_args() -> Dict[str, Path]:
     dir_parser.add_argument('-w', '--words', action='store', required=True,
                             help='Dirty word list')
     dir_parser.add_argument('-r', '--recursive', action='store_true', required=False,
-                            help='Dirty word list', default=False)
+                            help='Search all child directories', default=False)
 
     # Parse
     parsed_args = parser.parse_args()
