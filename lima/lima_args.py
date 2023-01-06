@@ -126,7 +126,7 @@ def _validate_path_arg(path_arg: str, arg_name: str) -> Path:
         TypeError: Bad datatype
         ValueError: Blank(?) arg_name value
     """
-    validate_string(path_arg, 'path_arg')
     validate_string(arg_name, 'arg_name')
+    validate_string(path_arg, arg_name)
     file_path = Path(path_arg)
     return file_path
