@@ -14,19 +14,17 @@ from pathlib import Path
 from typing import Any
 import os
 import sys
-import unittest
 # Third Party Imports
-from hobo.disk_operations import create_file
 from tediousstart.tediousstart import execute_test_cases
 # Local Imports
 # pylint: disable=wrong-import-order
-from test.unit_test.lima_unit_test import LivingManualUnitTest, REPO_DIR, TEST_INPUT_DIR
+from test.unit_test.lima_unit_test import LivingManualUnitTest, REPO_DIR
 sys.path.insert(0, os.path.join(REPO_DIR, 'lima'))  # Put all lima_* imports after this line
 # pylint: disable=wrong-import-position
 from lima.lima_search import search_file  # noqa: E402
 
 
-class RedirectStdStreams(object):
+class RedirectStdStreams():
     """Temporarily redirect output streams.
 
     Lifted from: https://stackoverflow.com/a/6796752
@@ -34,6 +32,8 @@ class RedirectStdStreams(object):
     def __init__(self, stdout=None, stderr=None):
         self._stdout = stdout or sys.stdout
         self._stderr = stderr or sys.stderr
+        self.old_stdout = None
+        self.old_stderr = None
 
     def __enter__(self):
         self.old_stdout, self.old_stderr = sys.stdout, sys.stderr
@@ -48,6 +48,8 @@ class RedirectStdStreams(object):
         sys.stderr = self.old_stderr
 
 
+# pylint: disable=too-many-public-methods
+# These are test cases, not just public methods.
 class SearchFileUnitTest(LivingManualUnitTest):
     """Executes an lima_search.search_file() unit test."""
 
@@ -59,7 +61,7 @@ class SearchFileUnitTest(LivingManualUnitTest):
 
         # CALL IT
         if self._silent_test:
-            with open(os.devnull, 'w') as devnull:  # Shunt for output
+            with open(os.devnull, 'w', encoding='utf-8') as devnull:  # Shunt for output
                 with RedirectStdStreams(stdout=devnull, stderr=devnull):
                     return_value = search_file(*self._args, **self._kwargs)
         else:

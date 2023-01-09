@@ -14,7 +14,7 @@ import sys
 # Local Imports
 from lima.lima_args import (ARG_DICT_KEY_DIR, ARG_DICT_KEY_ENCODE,
                             ARG_DICT_KEY_FILE, ARG_DICT_KEY_RECUR, ARG_DICT_KEY_WORDS,
-                            parse_lima_args, SUPPORTED_ENCODINGS)
+                            parse_lima_args)
 from lima.lima_search import get_dirty_words, search_dir, search_file
 
 
@@ -43,7 +43,6 @@ def main() -> int:
     temp_code = 0       # Temporary exit code for successive function calls
     arg_dict = {}       # Dictionary of command line arguments
     dirty_words = []    # List of dirty words parsed from the command line
-    encoding_list = []  # List of encodings to use
 
     # PARSE ARGS
     try:

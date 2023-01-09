@@ -94,6 +94,8 @@ def search_dir(dir_path: Path, dw_list: List[str], encoding: str, case_sensitive
     return found
 
 
+# pylint: disable=too-many-branches
+# Just leave me be
 def search_file(file_path: Path, dw_list: List[str], encoding: str,
                 case_sensitive: bool = True) -> int:
     """Searches file_path for dw_list entries using the format encoding.
@@ -118,7 +120,6 @@ def search_file(file_path: Path, dw_list: List[str], encoding: str,
     """
     # LOCAL VARIABLES
     found = 0       # 0 if no dirty words were found, 3 if dirty words were found
-    temp_found = 0  # Temporarily holds candidate value for found
     strategy = 0    # Track the winning strategy for this input
 
     # INPUT VALIDATION
