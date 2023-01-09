@@ -80,7 +80,7 @@ class LivingManualUnitTest(TediousUnitTest):
             self._test_error.format('The child class must override the validate_return_value '
                                     'method with the appropriate validation logic'))
 
-    def run_this_test(self, silent: bool = False) -> None:
+    def run_this_test(self, silent: bool = True) -> None:
         """Wrapper around self.run_test()."""
         self._validate_type(silent, 'silent', bool)
         self._silent_test = silent
