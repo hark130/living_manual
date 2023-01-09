@@ -10,6 +10,9 @@ from lima.lima_validation import (validate_path_dir, validate_path_file,
                                   validate_string, validate_type)
 
 
+VERBOSITY = False  # Place holder for `-v`/`--verbosity` functionality
+
+
 def get_dirty_words(dw_path: Path) -> List[str]:
     """Parse dirty word file into a list.
 
@@ -74,11 +77,8 @@ def search_dir(dir_path: Path, dw_list: List[str], encoding: str, case_sensitive
     # dir_path
     target_files = [t_file for t_file in dir_path.iterdir() if t_file.is_file()]
     for target_file in target_files:
-        try:
-            temp_found = search_file(file_path=target_file, dw_list=dw_list, encoding=encoding,
-                                     case_sensitive=case_sensitive)
-        except UnicodeDecodeError as err:
-            print(f'Failed to decode {target_file.absolute()} with {encoding}', file=sys.stderr)
+        temp_found = search_file(file_path=target_file, dw_list=dw_list, encoding=encoding,
+                                 case_sensitive=case_sensitive)
         if temp_found != 0:
             found = temp_found
     # Recurse?
@@ -114,12 +114,12 @@ def search_file(file_path: Path, dw_list: List[str], encoding: str,
         LookupError: Unknown encoding.
         OSError: file_path is not a file.
         TypeError: Bad data type.
-        RuntimeError: Wraps UnicodeDecodeErrors with more detail regarding file_path decode errors.
         ValueError: Bad value (e.g., empty string).
     """
     # LOCAL VARIABLES
-    found = 0           # 0 if no dirty words were found, 3 if dirty words were found
-    temp_found = 0      # Temporarily holds candidate value for found
+    found = 0       # 0 if no dirty words were found, 3 if dirty words were found
+    temp_found = 0  # Temporarily holds candidate value for found
+    strategy = 0    # Track the winning strategy for this input
 
     # INPUT VALIDATION
     validate_path_file(file_path)
@@ -134,30 +134,47 @@ def search_file(file_path: Path, dw_list: List[str], encoding: str,
     # READ IT
     # First attempt: as text
     try:
-        print('ATTEMPT 1')  # DEBUGGING
         found = _search_file_text(file_path=file_path, dw_list=dw_list,
                                   encoding=encoding, case_sensitive=case_sensitive)
-    except (RuntimeError, UnicodeDecodeError):
-        pass  # Try harder
+        if found:
+            strategy = 1
+    except (RuntimeError, UnicodeDecodeError) as err:
+        if VERBOSITY:
+            print(f'Unable to decode {file_path.absolute()} using {encoding}... {err}')
     # Second attempt: decoded bytes
     if found == 0:
         try:
-            print('ATTEMPT 2')  # DEBUGGING
             found = _search_file_bytes(file_path=file_path, dw_list=dw_list,
                                        encoding=encoding, case_sensitive=case_sensitive)
-        except (UnicodeDecodeError, UnicodeError):
-            pass  # Try harder
+            if found:
+                strategy = 2
+        except (UnicodeDecodeError, UnicodeError) as err:
+            if VERBOSITY:
+                print(f'Unable to decode {file_path.absolute()} using {encoding}... {err}')
     # Third attempt: encode the dirty words as bytes objects
     if found == 0:
         try:
-            print('ATTEMPT 3')  # DEBUGGING
             found = _search_bytes(file_path=file_path, dw_list=dw_list, encoding=encoding,
                                   case_sensitive=case_sensitive)
+            if found:
+                strategy = 3
         except (UnicodeDecodeError, UnicodeError) as err:
-            raise RuntimeError(f'Unable to decode {file_path.absolute()} with '
-                               f'{encoding}... {err}') from err
+            if VERBOSITY:
+                print(f'Unable to decode {file_path.absolute()} using {encoding}... {err}')
+    # Fourth attempt: remove \x00 byte values and search again
+    if found == 0:
+        try:
+            found = _search_null(file_path=file_path, dw_list=dw_list, encoding=encoding,
+                                 case_sensitive=case_sensitive)
+            if found:
+                strategy = 4
+        except (UnicodeDecodeError, UnicodeError) as err:
+            if VERBOSITY:
+                print(f'Unable to decode {file_path.absolute()} using {encoding}... {err}')
 
     # DONE
+    if strategy and VERBOSITY:
+        print(f'Dirty word detected using strategy {strategy}')
     return found
 
 
@@ -193,8 +210,8 @@ def _search_bytes(file_path: Path, dw_list: List[str], encoding: str, case_sensi
     for local_entry in local_list:
         if local_entry in file_contents:
             found = 3
-            print(f'{file_path.absolute()} : {str(local_entry)[1:]} found in binary file',
-                  file=sys.stderr)
+            print(f'{file_path.absolute()} : {str(local_entry)[1:]} found in binary file using '
+                  f'{encoding}', file=sys.stderr)
 
     # DONE
     return found
@@ -232,8 +249,8 @@ def _search_file_bytes(file_path: Path, dw_list: List[str], encoding: str,
     for dw_entry in local_list:
         if dw_entry in file_contents:
             found = 3
-            print(f'{file_path.absolute()} : {dw_entry} found in binary file',
-                  file=sys.stderr)
+            print(f'{file_path.absolute()} : {dw_entry} found in binary file using '
+                  f'{encoding}', file=sys.stderr)
 
     # DONE
     return found
@@ -264,16 +281,14 @@ def _search_file_text(file_path: Path, dw_list: List[str], encoding: str,
     file_contents = ''    # Contents of file_path
     local_list = dw_list  # Local copy of dw_list contents
     # Template Exception message
-    template_err = '{} {} ' + f'while decoding {file_path.absolute()} with {encoding}'
+    template_err = '{} {} ' + f'while decoding {file_path.absolute()} using {encoding}'
 
     # READ IT
     try:
         file_contents = file_path.read_text(encoding=encoding).split('\n')
     except UnicodeDecodeError as err:
-        print(template_err.format('UnicodeDecodeError', str(err)))  # DEBUGGING
         raise RuntimeError(template_err.format('UnicodeDecodeError', str(err))) from err
     except UnicodeError as err:
-        print(template_err.format('UnicodeDecodeError', str(err)))  # DEBUGGING
         raise RuntimeError(template_err.format('UnicodeError', str(err))) from err
     else:
         # PREPARE IT
@@ -287,6 +302,48 @@ def _search_file_text(file_path: Path, dw_list: List[str], encoding: str,
                     found = 3
                     print(f'{file_path.absolute()} : line {line_num + 1} : "{dw_entry}" '
                           f'found in "{file_entry}"', file=sys.stderr)
+
+    # DONE
+    return found
+
+
+def _search_null(file_path: Path, dw_list: List[str], encoding: str, case_sensitive: bool) -> int:
+    """Compare a file's bytes, with \x00 values removed, to dw_list entries encoded as encoding.
+
+    Some file types are encoded such that readable bytes are separated by \x00 values.  This
+    strategy strips all \x00 bytes and searches the stripped bytes for encoded dirty words.
+    This strategy was implemented for formats such as .NET assembly and 7z archives.
+    Prints findings to stderr.  Does not validate input.
+
+    Args:
+        file_path: Path object to a file to search.
+        dw_list: A list of non-empty strings to search file_path for.
+        encoding: Format with which to decode file_path.
+        case_sensitive: Considers case when checking file_path contents for dirty words.
+
+    Returns:
+        0 if no dirty words were found, 3 if dirty words were found.
+    """
+    # LOCAL VARIABLES
+    found = 0             # 0 if no dirty words were found, 3 if dirty words were found
+    file_contents = b''   # Byte content of file_path
+    # Local copy of dw_list contents as bytes objects
+    local_list = [bytes(dw_entry, encoding=encoding) for dw_entry in dw_list]
+
+    # READ IT
+    file_contents = file_path.read_bytes().replace(b'\x00', b'')
+
+    # PREPARE IT
+    if not case_sensitive:
+        local_list = [local_entry.lower() for local_entry in local_list]
+        file_contents = [file_entry.lower() for file_entry in file_contents]
+
+    # SEARCH IT
+    for local_entry in local_list:
+        if local_entry in file_contents:
+            found = 3
+            print(f'{file_path.absolute()} : {str(local_entry)[1:]} found in binary file using '
+                  f'{encoding}', file=sys.stderr)
 
     # DONE
     return found
