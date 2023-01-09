@@ -92,9 +92,6 @@ class SearchFileNormalUnitTest(SearchFileUnitTest):
 
         # TEST SETUP
         self.set_test_input(target, dirty_words, encoding, case_sensitivity)
-        # print(f'{self._args}')  # DEBUGGING
-        # print(f'{self._kwargs}')  # DEBUGGING
-        # print(f'{self._defined_test_input}')  # DEBUGGING
         self.expect_return(0)
 
         # RUN IT

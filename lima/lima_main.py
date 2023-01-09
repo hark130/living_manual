@@ -29,7 +29,6 @@ def execute() -> None:
         sys.exit(main())
     except Exception as err:
         print(f'ERROR: {str(err)}', file=sys.stderr)
-        raise err from err  # DEBUGGING
         sys.exit(2)  # Failure
 
 
