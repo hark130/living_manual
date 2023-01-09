@@ -18,7 +18,7 @@ from hobo.disk_operations import destroy_dir, find_path_to_dir, read_file
 from hobo.misc import print_exception
 
 LIMA_NAME = 'lima'
-LIMA_VERSION = '1.0.0'
+LIMA_VERSION = '1.1.0'
 LIMA_AUTHOR = 'Dev Crew Team Happy Aku'
 LIMA_EMAIL = 'nunya@biz.ns'  # https://iiwiki.us/wiki/.ns
 LIMA_DESCRIPTION = 'Dirty word search utility.'
